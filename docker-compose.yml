@@ -1,0 +1,85 @@
+version: '3.7'
+services:
+  extract-task-dispatcher:
+    hostname: extract_task_dispatcher
+    image: dockerhub.datagrand.com/ifas/extract-task-dispatcher:dev_arm_22.12.07.1126_
+    # restart: always
+    ports:
+      - "5858:5858"
+    environment:
+      - TZ=Asia/Shanghai
+      - PYTHONPATH=./
+      - LOCAL_ENV=local
+    depends_on:
+      - redis
+      - mysql
+      - rabbitmq
+    volumes:
+      - ./src:/root/extract_task_dispatcher/src
+      - ./data/extract_task_dispatcher/logs:/root/extract_task_dispatcher/logs
+    # command: gunicorn -c settings/gunicorn_config.py main:main_app
+    command: sleep 1d
+
+  celery-worker:
+    hostname: celery_worker
+    image: dockerhub.datagrand.com/ifas/extract-task-dispatcher:dev_arm_22.12.07.1126_
+    restart: always
+    environment:
+      - TZ=Asia/Shanghai
+      - PYTHONPATH=./
+      - lOCAL_ENV=local
+    depends_on:
+      - redis
+      - mysql
+      - rabbitmq
+    volumes:
+      - ./src:/root/extract_task_dispatcher/src
+      - ./data/extract_task_dispatcher/logs:/root/extract_task_dispatcher/logs
+    # command: celery -A tasks.app worker --loglevel=INFO -Q classify_queue --concurrency=1
+    command: sleep 1d
+
+  redis:
+    hostname: redis
+    image: redis:6.0.9-alpine
+    environment:
+      - TZ=Asia/Shanghai
+    expose:
+      - "6379"
+    volumes:
+      - ./data/redis:/data
+      - ./data/redis/config/redis.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf
+
+  mysql:
+    hostname: mysql
+    image: dockerhub.datagrand.com/datagrand/mysql:5.7
+    volumes:
+      - "./data/mysql/data:/var/lib/mysql"
+      - "./data/mysql/logs:/logs"
+    environment:
+      - MYSQL_DATABASE=extract_task_dispatcher
+      - MYSQL_ROOT_PASSWORD=123456
+      - MYSQL_USER=test
+      - MYSQL_PASSWORD=test_pw
+      - LANG=C.UTF-8
+      - TZ=Asia/Shanghai
+    privileged: true
+    ports:
+      - "13306:3306"
+    command: ['--character-set-server=utf8', '--collation-server=utf8_general_ci']
+
+  rabbitmq:
+    hostname: rabbitmq
+    restart: always
+    image: rabbitmq:3-management
+    environment:
+      - RABBITMQ_DEFAULT_VHOST=extract_task
+      - RABBITMQ_DEFAULT_USER=extract_task
+      - RABBITMQ_DEFAULT_PASS=extract_task_pwd
+      - RABBITMQ_CONFIG_FILE=/etc/rabbitmq/rabbitmq.conf
+    volumes:
+      - "./data/rabbitmq:/var/lib/rabbitmq"
+      - "./data/rabbitmq/config/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf"
+    ports:
+      - "5672:5672"
+      - "15672:15672"
