@@ -22,6 +22,5 @@ RUN apt-get update \
 RUN $dpip3 --upgrade pip $by_aliyun
 RUN $dpip3 -r requirements.txt $by_aliyun
 
-EXPOSE 5856
 COPY . .
 CMD ["supervisord", "-c", "deploy/supervisord.conf", "-n"]
