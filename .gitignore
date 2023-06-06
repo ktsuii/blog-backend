@@ -146,3 +146,4 @@ logs/
 # MACOS
 .DS_Store
 /src/alembic.ini
+/src/temp_script/
