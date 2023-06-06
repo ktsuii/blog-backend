@@ -1,5 +1,5 @@
 FROM python:3.10-slim-bullseye
-LABEL maintainer="13508023081@163.com"
+LABEL maintainer="phone13508023081@163.com"
 LABEL description="[blog-backend] python:3.10-slim-bullseye"
 ADD . /root
 WORKDIR /root
