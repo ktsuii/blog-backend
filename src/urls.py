@@ -1,4 +1,4 @@
-from api.checker.views import (HealthCheckView)
+from apps.checker.views import (HealthCheckView)
 
 url_patterns = [
     # (url, view, endpoint, methods)
