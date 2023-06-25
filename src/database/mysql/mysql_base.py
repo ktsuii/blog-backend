@@ -7,7 +7,7 @@ from settings import Config
 class MysqlDB:
     def __init__(self, host='localhost', port: int = 3306, user='root', password='123456', database='mysql',
                  pool_recycle=600, pool_pre_ping=True):
-        self.url = f"mysql+aiomysql://{user}:{password}@{host}:{port}/{database}"
+        self.url = f"mysql+pymysql://{user}:{password}@{host}:{port}/{database}"
         self.mysql_engine = create_engine(self.url, pool_recycle=pool_recycle, pool_pre_ping=pool_pre_ping,
                                           echo=Config.ECHO_SQL, pool_size=20, max_overflow=80)
         self.session_maker = sessionmaker(self.mysql_engine, expire_on_commit=False)

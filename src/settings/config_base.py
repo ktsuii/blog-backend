@@ -45,6 +45,7 @@ class Config:
     REDIS_KEY_EXPIRED = env('REDIS_KEY_EXPIRED', 10 * 60, dtype=int)
 
     # 基础组件 - MySQL连接地址
+    MYSQL_URL = env('DATABASE_URL', 'mysql+pymysql://root:root@localhost:3306/blog')
     MYSQL_HOST = env('MYSQL_HOST', 'mysql_host')
     MYSQL_PORT = env('MYSQL_PORT', 3306, dtype=int)
     MYSQL_USER = env('MYSQL_USER', 'mysql_user')
