@@ -5,7 +5,6 @@ from dataclasses import dataclass, field, asdict
 from typing import Any
 from settings import Config
 from logger import info_log
-from utils import tools
 
 
 @dataclass
@@ -47,7 +46,7 @@ if __name__ == "__main__":
     info_log.info(f'项目：{Config.PROJECT_NAME}')
     info_log.info(f'环境：{Config.ENV_NAME}')
     info_log.info(f'REDIS地址：{Config.REDIS_HOST}')
-    info_log.info(f'MySQL地址：{tools.extract_ip(Config.MYSQL_URL)}')
+    info_log.info(f'MySQL地址：{Config.MYSQL_HOST}')
     info_log.info('***********************************************')
 
     app.run(host="0.0.0.0", port=Config.PORT, debug=Config.DEBUG)

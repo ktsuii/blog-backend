@@ -12,3 +12,6 @@ class ConfigDev(Config):
     POOL_RECYCLE = env('POOL_RECYCLE', 3600, dtype=int)
     POOL_PRE_PING = env('POOL_PRE_PING', True, dtype=bool)
     ECHO_SQL = env('ECHO_SQL', True, dtype=bool)
+
+    REDIS_HOST = env('REDIS_HOST', 'localhost')
+    REDIS_PORT = env('REDIS_PORT', 6379, dtype=int)

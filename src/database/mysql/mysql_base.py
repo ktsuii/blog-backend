@@ -15,7 +15,6 @@ class MysqlDB:
 
     def init_db(self):
         """初始化Mysql数据库"""
-        # 初始化数据表
         self.create_tables(create_tables=True, drop_before_init=True)
 
     def create_tables(self, create_tables=False, drop_before_init=False):
