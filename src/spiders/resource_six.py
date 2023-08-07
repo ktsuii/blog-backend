@@ -13,21 +13,21 @@ from base import BaseSpider
 from logger import info_log
 
 
-class Consts(Enum):
+class Const(Enum):
     USER_LOGIN = 'user_login'
     USER_SIGNIN = 'qiandao'
     BALANCE_XPATH = '//div[@class="author-info mcolorbg4"]/h3/text()'
 
 
 @dataclass
-class LoginSchema:
+class LoginReqParam:
     action: str
     username: str
     password: str
 
 
 @dataclass
-class SigninSchema:
+class SigninReqParam:
     action: str
 
 
@@ -36,12 +36,12 @@ class ResourceSix(BaseSpider):
     def _require(self):
         self.index_url = Config.resource_six_index_url
         self.user_url = Config.resource_six_user_url
-        self.login_data = LoginSchema(
-            action=Consts.USER_LOGIN.value,
+        self.login_data = LoginReqParam(
+            action=Const.USER_LOGIN.value,
             username=Config.resource_six_username,
             password=Config.resource_six_password
         )
-        self.signin_data = SigninSchema(action=Consts.USER_SIGNIN.value)
+        self.signin_data = SigninReqParam(action=Const.USER_SIGNIN.value)
 
     def run(self):
         """
@@ -64,7 +64,7 @@ class ResourceSix(BaseSpider):
             raise ValueError('get balance failed, please check...')
 
         htm = etree.HTML(resp_balance.text)
-        balance = htm.xpath(Consts.BALANCE_XPATH.value)[0]
+        balance = htm.xpath(Const.BALANCE_XPATH.value)[0]
         info_log.info(f"sign in success, current balance: {balance}")
 
 
