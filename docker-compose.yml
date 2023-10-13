@@ -1,8 +1,9 @@
 version: '3'
 services:
     blog-backend:
-        #image: tsurol/blog:23.06.02.1800_1854a31
-        image: tsurol/blog:23.06.06.1023_62e5c14 
+        # image: tsurol/blog:23.06.02.1800_1854a31
+        image: tsurol/blog:23.06.06.1023_62e5c14
+        container_name: blog-backend
         volumes:
             - ./src:/Users/a1/Project/blog-backend/src
         environment:
@@ -13,3 +14,38 @@ services:
         ports:
             - 5856:5856
         command: bash -c "supervisord -c deploy/supervisord.conf -n"
+    redis:
+        image: redis:6.2-alpine
+        container_name: redis
+        restart: always
+        privileged: true
+        ports:
+            - 6379:6379
+        volumes:
+            - ./data/redis:/data
+            - ./logs/redis:/var/log/redis
+        command: redis-server --requirepass redis_password
+    rabbitmq:
+        image: rabbitmq:3-management-alpine
+        restart: always
+        ports:
+            - 5672:5672
+            - 15672:15672
+        environment:
+            - RABBITMQ_DEFAULT_USER=admin
+            - RABBITMQ_DEFAULT_PASS=admin
+    mysql:
+        image: mysql:8.0
+        container_name: mysql
+        restart: always
+        privileged: true
+        ports:
+            - 13306:3306
+        environment:
+            - MYSQL_ROOT_PASSWORD=root
+            - MYSQL_DATABASE=blog
+            - MYSQL_USER=blog
+            - MYSQL_PASSWORD=blog
+        volumes:
+            - ./data/mysql:/var/lib/mysql
+            - ./logs/mysql:/var/log/mysql

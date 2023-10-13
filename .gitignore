@@ -147,3 +147,4 @@ logs/
 .DS_Store
 /src/alembic.ini
 /src/temp/
+data/
