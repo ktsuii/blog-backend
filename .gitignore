@@ -148,3 +148,4 @@ logs/
 /src/alembic.ini
 /src/temp/
 data/
+/src/spider_file/

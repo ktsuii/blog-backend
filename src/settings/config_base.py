@@ -54,8 +54,6 @@ class Config:
     POOL_PRE_PING = env('POOL_PRE_PING', True, dtype=bool)
     ECHO_SQL = env('ECHO_SQL', True, dtype=bool)
 
-    # 爬虫 - 666资源网相关配置
-    resource_six_index_url = "https://666java.com/wp-admin/admin-ajax.php"
-    resource_six_user_url = "https://666java.com/user"
-    resource_six_username = env('resource_six_username', 'Tsurol')
-    resource_six_password = env('resource_six_password', '123456zzl')
+    # 静态文件
+    ZZZMH_DECRYPT_PATH = str(SRC_ROOT.joinpath('static', 'zzzmh.js'))
+    ZZZMH_SAVE_DIR = str(SRC_ROOT.joinpath('spider_file', 'zzzmh'))
