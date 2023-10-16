@@ -1,5 +1,6 @@
 import requests
 from retrying import retry
+from spiders.exception import ResponseError
 
 
 class CrawlerBase(object):
@@ -27,6 +28,9 @@ class CrawlerBase(object):
             timeout=self.timeout,
             **kwargs
         )
+        if response.status_code != 200:
+            raise ResponseError(response.status_code, response.text)
+
         return response
 
     def get(self, url, **kwargs):

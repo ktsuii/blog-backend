@@ -21,7 +21,8 @@ def crawl_wallpaper(session, crawlor: Crawler, keyword: str):
     """
     dirname = datetime.now().strftime("%Y%m%d%H%M%S")
     directory_path = pathlib.Path(Config.ZZZMH_SAVE_DIR, str(dirname))
-    pictures = crawlor.zzzmh.run(keyword=keyword, max_page=1, save_dir=directory_path)
+    flag, pictures = crawlor.zzzmh.run(keyword=keyword, max_page=1, save_dir=directory_path)
+    if flag is False: return {}
     session.add_all([Wallpaper(**pic) for pic in pictures])
     session.commit()
 

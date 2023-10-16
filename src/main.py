@@ -34,7 +34,7 @@ def after_request(resp: flask.Response):
 
     if status_code == 404: return resp
     if status_code != 200:
-        response = ApiResponse(code=status_code, msg=resp.status, data=data)
+        response = ApiResponse(code=status_code, msg='失败', data=data)
     else:
         if data is None: data = {}
         response = ApiResponse(code=200, data=data)
