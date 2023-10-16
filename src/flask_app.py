@@ -4,6 +4,7 @@ from settings import Config
 from urls import url_patterns
 from typing import Type, List
 from flask.views import MethodView
+from database.mysql.mysql_base import mysql_db
 
 app = Flask(Config.PROJECT_NAME, template_folder=Config.TemplatePath)
 app.config['JSON_AS_ASCII'] = False
@@ -26,3 +27,5 @@ def register_api(
 
 for url_info in url_patterns:
     register_api(*url_info)
+
+mysql_db.create_tables(create_tables=True, drop_before_init=False)

@@ -1,13 +1,14 @@
 import pathlib
 from dataclasses import asdict
+from datetime import datetime
 
-from base import CrawlerBase
+from spiders.base import CrawlerBase
 from logger import info_log
 from settings.config_base import Config
 from spiders.const import ZZZMHUrl
 from spiders.executor import JSExecutor
-from spiders.schema import ZZZMHPageListReqParam
-from exception import ResponseError
+from spiders.schema import ZZZMHPageListReqParam, ZZZMHSearchDataReqParam
+from spiders.exception import ResponseError
 
 
 class ZZZMHCrawler(CrawlerBase):
@@ -19,10 +20,17 @@ class ZZZMHCrawler(CrawlerBase):
         }
         self.js_executor = JSExecutor()
 
-    def crawling(self, page: int):
+    def crawling(self, page: int, save_dir: pathlib.Path, kw: str):
+        wallpapers = []
+
         # 1. request
-        param = ZZZMHPageListReqParam(current=page)
-        list_resp = self.post(url=ZZZMHUrl.LIST_DATA_URL.value, json=asdict(param))
+        if kw:  # 关键词搜索
+            param = ZZZMHSearchDataReqParam(current=page, keyword=kw)
+            list_resp = self.post(url=ZZZMHUrl.SEARCH_DATA_URL.value, json=asdict(param))
+        else:
+            param = ZZZMHPageListReqParam(current=page)
+            list_resp = self.post(url=ZZZMHUrl.LIST_DATA_URL.value, json=asdict(param))
+
         assert list_resp.status_code == 200, ResponseError(list_resp.status_code, list_resp.text)
         info_log.info(f'get page {page} success')
 
@@ -44,7 +52,8 @@ class ZZZMHCrawler(CrawlerBase):
 
             assert download_resp.status_code == 200, ResponseError(download_resp.status_code, download_resp.text)
 
-            save_path = pathlib.Path(Config.ZZZMH_SAVE_DIR, f'page{str(current_page)}', f"{cust_pic_id}.jpg")
+            save_path = save_dir.joinpath(f"{cust_pic_id}.jpg")
+
             if not save_path.parent.exists():
                 save_path.parent.mkdir(parents=True)
 
@@ -52,15 +61,27 @@ class ZZZMHCrawler(CrawlerBase):
                 f.write(download_resp.content)
                 info_log.info(f'save picture {save_path} success')
 
-    def run(self, max_page=10):
+            wallpapers.append(dict(pid=cust_pic_id, path=str(save_path)))
+
+        return wallpapers
+
+    def run(self, keyword=None, max_page=None, save_dir=None):
+        if save_dir is None:
+            save_dir = pathlib.Path(Config.ZZZMH_SAVE_DIR)
+
+        crawl_wallpapers = []
         curr_page = 1
         while curr_page <= max_page:
             info_log.info(f'start crawling page {curr_page}...')
-            self.crawling(page=curr_page)
+
+            page_wallpapers = self.crawling(page=curr_page, save_dir=save_dir, kw=keyword)
+            crawl_wallpapers.extend(page_wallpapers)
+
             info_log.info(f'crawling page {curr_page} success')
             curr_page += 1
 
         info_log.info('crawling finish')
+        return crawl_wallpapers
 
 
 if __name__ == '__main__':

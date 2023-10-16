@@ -41,11 +41,13 @@ services:
         privileged: true
         ports:
             - 13306:3306
+        expose:
+            - 13306
         environment:
-            - MYSQL_ROOT_PASSWORD=root
             - MYSQL_DATABASE=blog
-            - MYSQL_USER=blog
-            - MYSQL_PASSWORD=blog
+            - MYSQL_USER=root
+            - MYSQL_PASSWORD=root
+            - MYSQL_PORT=13306
         volumes:
             - ./data/mysql:/var/lib/mysql
             - ./logs/mysql:/var/log/mysql

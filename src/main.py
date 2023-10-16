@@ -1,3 +1,4 @@
+import base64
 import flask
 from flask_app import app
 from flask import jsonify, request, render_template
@@ -26,6 +27,8 @@ def before_request():
 
 @app.after_request
 def after_request(resp: flask.Response):
+    if isinstance(resp.data, bytes): return resp
+
     data = resp.json or resp.data.decode('utf-8')
     status_code = resp.status_code
 

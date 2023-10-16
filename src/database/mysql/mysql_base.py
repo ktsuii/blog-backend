@@ -13,16 +13,17 @@ class MysqlDB:
         self.session_maker = sessionmaker(self.mysql_engine, expire_on_commit=False)
         self.metadata = Base.metadata
 
-    def init_db(self):
+    def init_db(self, create_tables=False, drop_before_init=False):
         """初始化Mysql数据库"""
-        self.create_tables(create_tables=True, drop_before_init=True)
+        self.create_tables(create_tables=create_tables, drop_before_init=drop_before_init)
 
     def create_tables(self, create_tables=False, drop_before_init=False):
         if not create_tables:
             return
-        if drop_before_init:
-            self.metadata.drop_all()
-        self.metadata.create_all()
+        with self.mysql_engine.begin() as conn:
+            if drop_before_init:
+                self.metadata.drop_all(conn)
+            self.metadata.create_all(conn)
 
 
 MYSQL_CONFIG = {
