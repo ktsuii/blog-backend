@@ -50,7 +50,7 @@ class LJXFCrawler(CrawlerBase):
         df.to_excel(save_path, index=False)
 
     def crawling(self, page: int):
-        list_resp = self.get(url=LJUrl.NEW_HOUSE_DATA_URL.value.format(page))
+        list_resp = self.get(url=LJUrl.NEW_HOUSE_DATA_URL.value.format(self.city, page))
         html_tree = etree.HTML(list_resp.text)
 
         house_list = html_tree.xpath(LJHtmlSelector.NEW_HOUSE_LIST.value)
