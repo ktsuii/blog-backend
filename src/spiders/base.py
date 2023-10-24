@@ -3,7 +3,7 @@ from retrying import retry
 from spiders.exception import ResponseError
 
 
-class CrawlerBase(object):
+class CrawlerBase:
     def __init__(self, headers=None, timeout=20):
         self.session = requests.Session()
         self.headers = headers or {}
@@ -11,7 +11,7 @@ class CrawlerBase(object):
         self._require()
 
     def _require(self):
-        raise NotImplementedError("Please implement this method in subclass.")
+        ...
 
     def run(self):
         raise NotImplementedError("Please implement this method in subclass.")
