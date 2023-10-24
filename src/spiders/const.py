@@ -10,7 +10,7 @@ class ZZZMHUrl(Enum):
 
 class LJUrl(Enum):
     """链家"""
-    NEW_HOUSE_DATA_URL = 'https://cq.fang.lianjia.com/loupan/pg{}/'
+    NEW_HOUSE_DATA_URL = 'https://{}.fang.lianjia.com/loupan/pg{}/'
     NEW_HOUSE_DETAIL_BASE_URL = 'https://cd.fang.lianjia.com{}'
 
 

@@ -19,6 +19,7 @@ class LJXFCrawler(CrawlerBase):
     def __init__(self, _city: str):
         super().__init__()
         self.city = _city
+        self.filename = self._filename
 
     def _require(self):
         self.headers = {
@@ -26,7 +27,10 @@ class LJXFCrawler(CrawlerBase):
                           'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36',
             'Referer': 'https://cd.fang.lianjia.com/loupan/'
         }
-        self.filename = f'{self.city}_新房_{time.strftime("%Y%m%d%H%M%S", time.localtime())}.xlsx'
+
+    @property
+    def _filename(self):
+        return f'{self.city}_xf_{time.strftime("%Y%m%d%H%M%S", time.localtime())}.xlsx'
 
     @staticmethod
     def _extract_first(data):
@@ -140,5 +144,6 @@ class LJXFCrawler(CrawlerBase):
 
 if __name__ == '__main__':
     city = sys.argv[1]  # 城市拼音简写，比如重庆就输入cq，成都就输入cd
+    # city = 'cd'
     craw = LJXFCrawler(city)
     craw.run(max_page=1, is_async=False)
