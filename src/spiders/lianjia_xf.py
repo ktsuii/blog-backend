@@ -1,6 +1,6 @@
 import pathlib
 import threading
-
+import sys
 import pandas as pd
 import time
 import random
@@ -16,12 +16,17 @@ from spiders.exception import ResponseError, HtmlVerificationError
 
 class LJXFCrawler(CrawlerBase):
 
+    def __init__(self, _city: str):
+        super().__init__()
+        self.city = _city
+
     def _require(self):
         self.headers = {
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) '
                           'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36',
             'Referer': 'https://cd.fang.lianjia.com/loupan/'
         }
+        self.filename = f'{self.city}_新房_{time.strftime("%Y%m%d%H%M%S", time.localtime())}.xlsx'
 
     @staticmethod
     def _extract_first(data):
@@ -119,7 +124,7 @@ class LJXFCrawler(CrawlerBase):
         detail_header_columns = ['项目地址', '最近开盘', '楼盘户型']
         header_columns.extend(detail_header_columns)
 
-        save_path = pathlib.Path(Config.LJ_NEW_HOUSE_SAVE_DIR).joinpath(f"链家新房.xlsx")  # tmp
+        save_path = pathlib.Path(Config.LJ_NEW_HOUSE_SAVE_DIR).joinpath(self.filename)
         if not save_path.parent.exists():
             save_path.parent.mkdir(parents=True)
 
@@ -134,5 +139,6 @@ class LJXFCrawler(CrawlerBase):
 
 
 if __name__ == '__main__':
-    craw = LJXFCrawler()
-    craw.run(max_page=100, is_async=True)
+    city = sys.argv[1]  # 城市拼音简写，比如重庆就输入cq，成都就输入cd
+    craw = LJXFCrawler(city)
+    craw.run(max_page=1, is_async=False)
