@@ -58,3 +58,6 @@ class Config:
     ZZZMH_DECRYPT_PATH = str(SRC_ROOT.joinpath('static', 'zzzmh.js'))
     ZZZMH_SAVE_DIR = str(SRC_ROOT.joinpath('spider_file', 'zzzmh'))
     LJ_NEW_HOUSE_SAVE_DIR = str(SRC_ROOT.joinpath('spider_file', 'lj_new_house'))
+
+    # openai
+    OPENAI_API_KEY = env('OPENAI_API_KEY', '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')

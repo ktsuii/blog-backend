@@ -50,37 +50,40 @@ class LJXFCrawler(CrawlerBase):
         df.to_excel(save_path, index=False)
 
     def crawling(self, page: int):
-        list_resp = self.get(url=LJUrl.NEW_HOUSE_DATA_URL.value.format(self.city, page))
+        new_house_url = LJUrl.NEW_HOUSE_DATA_URL.value.format(self.city, page)
+        list_resp = self.get(url=new_house_url)
         html_tree = etree.HTML(list_resp.text)
 
         house_list = html_tree.xpath(LJHtmlSelector.NEW_HOUSE_LIST.value)
         if not house_list:
-            raise HtmlVerificationError('出现人机验证')  # todo selenium处理
+            raise HtmlVerificationError(f'出现人机验证 >>> {new_house_url=}')  # todo selenium处理
 
         house_columns = []
         for house in house_list:
-            # 楼盘列表
+            # ------------------------------------------ 楼盘列表 ------------------------------------------
             house_name = self._extract_first(house.xpath(LJHtmlSelector.NEW_HOUSE_NAME.value))  # 楼盘名称
             house_type = self._extract_first(house.xpath(LJHtmlSelector.NEW_HOUSE_TYPE.value))  # 楼盘类型  住宅/公寓
             house_status = self._extract_first(house.xpath(LJHtmlSelector.NEW_HOUSE_STATUS.value))  # 楼盘状态  在售/待售
             house_avg_price = self._extract_first(house.xpath(LJHtmlSelector.NEW_HOUSE_AVG_PRICE.value))  # 楼盘均价 元/平
             house_total_price = self._extract_first(house.xpath(LJHtmlSelector.NEW_HOUSE_TOTAL_PRICE.value))  # 楼盘总价 万/套
             house_detail_url = self._extract_first(house.xpath(LJHtmlSelector.NEW_HOUSE_DETAIL_URL.value))  # 楼盘详情页url
+            # ------------------------------------------ 楼盘列表 ------------------------------------------
 
-            # 楼盘详情
+            # ------------------------------------------ 楼盘详情 ------------------------------------------
             detail_url = LJUrl.NEW_HOUSE_DETAIL_BASE_URL.value.format(house_detail_url)
             detail_resp = self.get(url=detail_url)
             detail_tree = etree.HTML(detail_resp.text)
-
             house_address = self._extract_first(detail_tree.xpath(LJHtmlSelector.NEW_HOUSE_ADDRESS.value))  # 项目地址
             house_open_date = self._extract_first(detail_tree.xpath(LJHtmlSelector.NEW_HOUSE_OPEN_DATE.value))  # 最近开盘
             house_type_list = self._join(detail_tree.xpath(LJHtmlSelector.NEW_HOUSE_TYPE_LIST.value))  # 楼盘户型
+            # ------------------------------------------ 楼盘详情 ------------------------------------------
 
-            house_columns.append([
+            house_item = [
                 house_name, house_type, house_status,
                 house_avg_price, house_total_price, detail_url,
                 house_address, house_open_date, house_type_list
-            ])
+            ]
+            house_columns.append(house_item)
 
         return house_columns
 
@@ -143,7 +146,7 @@ class LJXFCrawler(CrawlerBase):
 
 
 if __name__ == '__main__':
-    city = sys.argv[1]  # 城市拼音简写，比如重庆就输入cq，成都就输入cd
-    # city = 'cd'
+    # city = sys.argv[1]  # 城市拼音简写，比如重庆就输入cq，成都就输入cd
+    city = 'cd'
     craw = LJXFCrawler(city)
-    craw.run(max_page=1, is_async=False)
+    craw.run(max_page=100, is_async=True)
