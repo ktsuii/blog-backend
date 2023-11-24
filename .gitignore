@@ -146,6 +146,6 @@ logs/
 # MACOS
 .DS_Store
 /src/alembic.ini
-/src/temp/
+/src/tmp/
 data/
 /src/spider_file/
