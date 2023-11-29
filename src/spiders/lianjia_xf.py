@@ -15,11 +15,11 @@ from spiders.exception import ResponseError, HtmlVerificationError
 
 
 class LJXFCrawler(CrawlerBase):
+    MAX_WORKERS = 10
 
-    def __init__(self, _city: str):
+    def __init__(self, _city: str = ""):
         super().__init__()
         self.city = _city
-        self.filename = self._filename
 
     def _require(self):
         self.headers = {
@@ -27,6 +27,7 @@ class LJXFCrawler(CrawlerBase):
                           'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36',
             'Referer': 'https://cd.fang.lianjia.com/loupan/'
         }
+        self.filename = self._filename
 
     @property
     def _filename(self):
@@ -90,7 +91,7 @@ class LJXFCrawler(CrawlerBase):
     def crawl_page_async(self, max_page: int):
         info_log.info(f'开始多线程爬取...')
         house_data = []
-        with ThreadPoolExecutor(max_workers=10) as executor:
+        with ThreadPoolExecutor(max_workers=self.MAX_WORKERS) as executor:
             tasks = [executor.submit(self.crawling, page) for page in range(1, max_page + 1)]
             for future in as_completed(tasks):
                 try:
@@ -98,8 +99,7 @@ class LJXFCrawler(CrawlerBase):
                     if not page_house:
                         info_log.info(f'已经爬取到最后一页，爬取结束')
                         break
-                    with threading.Lock():
-                        house_data.extend(page_house)
+                    with threading.Lock(): house_data.extend(page_house)
                     time.sleep(random.randint(1, 3))
                 except (ResponseError, HtmlVerificationError) as e:
                     error_log.error(f'crawl error, {e=}')
@@ -146,7 +146,6 @@ class LJXFCrawler(CrawlerBase):
 
 
 if __name__ == '__main__':
-    # city = sys.argv[1]  # 城市拼音简写，比如重庆就输入cq，成都就输入cd
-    city = 'cd'
+    city = input('【链家新房】请输入要爬取的城市缩写（比如重庆就输入cq）：')
     craw = LJXFCrawler(city)
     craw.run(max_page=100, is_async=True)

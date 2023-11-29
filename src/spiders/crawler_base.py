@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+from spiders.lianjia_xf import LJXFCrawler
 from spiders.zzzmh import ZZZMHCrawler
 
 
@@ -8,3 +9,4 @@ class Crawler:
 
     def __post_init__(self):
         self.zzzmh = ZZZMHCrawler()
+        self.ljxf = LJXFCrawler()
