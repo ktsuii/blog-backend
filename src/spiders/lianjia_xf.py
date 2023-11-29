@@ -12,10 +12,12 @@ from lxml import etree
 
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from spiders.exception import ResponseError, HtmlVerificationError
+from utils.tools import chinese2pinyin_abbr
 
 
 class LJXFCrawler(CrawlerBase):
     MAX_WORKERS = 10
+    PER_PAGE = 10
 
     def __init__(self, _city: str = ""):
         super().__init__()
@@ -88,7 +90,7 @@ class LJXFCrawler(CrawlerBase):
 
         return house_columns
 
-    def crawl_page_async(self, max_page: int):
+    def crawl_page_async(self, max_page: int, max_num: int):
         info_log.info(f'开始多线程爬取...')
         house_data = []
         with ThreadPoolExecutor(max_workers=self.MAX_WORKERS) as executor:
@@ -99,14 +101,18 @@ class LJXFCrawler(CrawlerBase):
                     if not page_house:
                         info_log.info(f'已经爬取到最后一页，爬取结束')
                         break
-                    with threading.Lock(): house_data.extend(page_house)
+                    with threading.Lock():
+                        if len(house_data) >= max_num:
+                            info_log.info(f'已经爬取到最大数量，爬取结束')
+                            break
+                        house_data.extend(page_house)
                     time.sleep(random.randint(1, 3))
                 except (ResponseError, HtmlVerificationError) as e:
                     error_log.error(f'crawl error, {e=}')
                     break
         return house_data
 
-    def crawl_page(self, max_page: int):
+    def crawl_page(self, max_page: int, max_num: int):
         info_log.info(f'开始同步爬取...')
         house_data = []
         curr_page = 1
@@ -117,6 +123,9 @@ class LJXFCrawler(CrawlerBase):
                 if not page_house:
                     info_log.info(f'已经爬取到最后一页，爬取结束')
                     break
+                if len(house_data) >= max_num:
+                    info_log.info(f'已经爬取到最大数量，爬取结束')
+                    break
                 house_data.extend(page_house)
                 time.sleep(random.randint(1, 3))
                 info_log.info(f'第{curr_page}页爬取完成')
@@ -126,7 +135,10 @@ class LJXFCrawler(CrawlerBase):
             curr_page += 1
         return house_data
 
-    def run(self, max_page: int = 1, is_async=False):
+    def run(self, max_num: int = 1, is_async=False):
+        # 计算最大页数，每页10条数据
+        max_page = max_num // self.PER_PAGE + 1 if max_num % self.PER_PAGE else max_num // self.PER_PAGE
+
         header_columns = ['楼盘名称', '楼盘类型', '楼盘状态', '楼盘均价', '楼盘总价', '楼盘详情']
         detail_header_columns = ['项目地址', '最近开盘', '楼盘户型']
         header_columns.extend(detail_header_columns)
@@ -136,16 +148,35 @@ class LJXFCrawler(CrawlerBase):
             save_path.parent.mkdir(parents=True)
 
         if not is_async:  # 同步单线程爬取
-            house_data = self.crawl_page(max_page=max_page)
+            house_data = self.crawl_page(max_page=max_page, max_num=max_num)
         else:  # 多线程爬取
-            house_data = self.crawl_page_async(max_page=max_page)
+            house_data = self.crawl_page_async(max_page=max_page, max_num=max_num)
 
         info_log.info(f'爬取完成，共{len(house_data)}条数据，即将写入文件...')
         self.to_excel(save_path=save_path, data=house_data, columns=header_columns)
         info_log.info(f'写入文件完成，文件路径：{save_path}')
 
 
-if __name__ == '__main__':
-    city = input('【链家新房】请输入要爬取的城市缩写（比如重庆就输入cq）：')
+def main():
+    print("\n==================================================================================")
+    city = input('【链家新房】请输入要爬取的城市缩写（例如`重庆`）：')
+    city = chinese2pinyin_abbr(city)
+    if not city:  # TODO 暂时没有对用户输入对城市进行合法性校验，如果输入城市不存在会导致爬取的数据有误。
+        raise ValueError('【链家新房】城市缩写不能为空')
+
+    num = input('【链家新房】请输入要爬取的楼盘数量（默认为1）：')
+    if not num: num = 1
+
+    craw_way = input('【链家新房】请选择爬取方式（0：[默认]同步单线程爬取，1：异步多线程爬取）：')
+    if not craw_way: craw_way = 0
+    is_async = True if int(craw_way) == 1 else False
+
+    print("【链家新房】开始爬取...")
     craw = LJXFCrawler(city)
-    craw.run(max_page=100, is_async=True)
+    craw.run(max_num=int(num), is_async=is_async)
+    print("【链家新房】爬取完成...")
+    print("==================================================================================\n")
+
+
+if __name__ == '__main__':
+    main()
