@@ -6,7 +6,7 @@ import time
 import random
 from spiders.base import CrawlerBase
 from logger import info_log, error_log
-from settings.config_base import Config
+from settings import Config
 from spiders.const import LJUrl, LJHtmlSelector
 from lxml import etree
 
@@ -20,6 +20,7 @@ class LJXFCrawler(CrawlerBase):
     def __init__(self, _city: str = ""):
         super().__init__()
         self.city = _city
+        self.filename = self._filename
 
     def _require(self):
         self.headers = {
@@ -27,7 +28,6 @@ class LJXFCrawler(CrawlerBase):
                           'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36',
             'Referer': 'https://cd.fang.lianjia.com/loupan/'
         }
-        self.filename = self._filename
 
     @property
     def _filename(self):
