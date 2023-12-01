@@ -9,6 +9,30 @@ from settings import Config
 
 from spiders.crawler_base import Crawler
 from database.mysql.model.spider import Wallpaper
+from utils.tools import chinese2pinyin_abbr
+
+
+def crawl_new_house(session, crawlor: Crawler, city: str, num: int, is_async: bool):
+    """
+    爬取指定城市的新房信息
+    :param session: 数据库连接
+    :param crawlor: 爬虫器
+    :param city: 爬取城市
+    :param num: 爬取数量
+    :param is_async: 是否多线程异步爬取
+    :return:
+    """
+    city = chinese2pinyin_abbr(city)
+    save_path = crawlor.ljxf(city).run(max_num=int(num), is_async=is_async)
+
+    bytes_data = stream_download(save_path)
+
+    response = make_response(stream_with_context(bytes_data))
+    response.headers.set('Content-Disposition', 'attachment', filename=save_path.name)
+    response.headers.set('Content-Type', 'application/octet-stream')
+    response.headers.set('Content-Transfer-Encoding', 'binary')
+
+    return response
 
 
 def crawl_wallpaper(session, crawlor: Crawler, keyword: str):
@@ -21,7 +45,7 @@ def crawl_wallpaper(session, crawlor: Crawler, keyword: str):
     """
     dirname = datetime.now().strftime("%Y%m%d%H%M%S")
     directory_path = pathlib.Path(Config.ZZZMH_SAVE_DIR, str(dirname))
-    flag, pictures = crawlor.zzzmh.run(keyword=keyword, max_page=1, save_dir=directory_path)
+    flag, pictures = crawlor.zzzmh().run(keyword=keyword, max_page=1, save_dir=directory_path)
     if flag is False: return {}
     session.add_all([Wallpaper(**pic) for pic in pictures])
     session.commit()

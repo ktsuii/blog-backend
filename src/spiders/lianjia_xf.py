@@ -19,7 +19,7 @@ class LJXFCrawler(CrawlerBase):
     MAX_WORKERS = 10
     PER_PAGE = 10
 
-    def __init__(self, _city: str = ""):
+    def __init__(self, _city: str = "cd"):
         super().__init__()
         self.city = _city
         self.filename = self._filename
@@ -155,6 +155,7 @@ class LJXFCrawler(CrawlerBase):
         info_log.info(f'爬取完成，共{len(house_data)}条数据，即将写入文件...')
         self.to_excel(save_path=save_path, data=house_data, columns=header_columns)
         info_log.info(f'写入文件完成，文件路径：{save_path}')
+        return save_path
 
 
 def main():

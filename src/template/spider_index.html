@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spider Index</title>
+</head>
+<body>
+
+<div id="houseSpider">
+    <h2>新房楼盘信息抓取</h2>
+
+    <form id="spiderForm">
+        <label for="user-city">城市：</label>
+        <input type="text" id="user-city" name="user-city" required>
+        <br>
+
+        <label for="spider-num">数量：</label>
+        <input type="number" id="spider-num" name="spider-num" min="1" required>
+        <br>
+
+        <label>方式：</label>
+        <input type="radio" id="syncRadio" name="crawlType" value="true" checked>
+        <label for="syncRadio">单线程</label>
+        <input type="radio" id="asyncRadio" name="crawlType" value="false">
+        <label for="asyncRadio">多线程</label>
+        <br>
+
+        <button type="button" onclick="houseCrawing()">开始爬取</button>
+    </form>
+</div>
+
+
+<script>
+    function houseCrawing() {
+        // 获取输入框和单选框的值
+        var city = document.getElementById("user-city").value;
+        var num = document.getElementById("spider-num").value;
+        var crawlType = document.querySelector('input[name="crawlType"]:checked').value;
+
+        var requestData = {
+            city: city,
+            num: num,
+            crawlType: crawlType
+        };
+        fetch('/api/spider/new-house', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(requestData)
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.blob();
+            })
+            .then(blobData => {
+                var blobUrl = URL.createObjectURL(blobData);
+
+                // 创建一个链接元素并模拟点击下载
+                var downloadLink = document.createElement('a');
+                downloadLink.href = blobUrl;
+                downloadLink.download = '新房楼盘.xlsx';
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                document.body.removeChild(downloadLink);
+
+                URL.revokeObjectURL(blobUrl);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    }
+</script>
+
+</body>
+</html>

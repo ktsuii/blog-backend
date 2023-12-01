@@ -8,5 +8,5 @@ from spiders.zzzmh import ZZZMHCrawler
 class Crawler:
 
     def __post_init__(self):
-        self.zzzmh = ZZZMHCrawler()
-        self.ljxf = LJXFCrawler()
+        self.zzzmh = ZZZMHCrawler
+        self.ljxf = LJXFCrawler
