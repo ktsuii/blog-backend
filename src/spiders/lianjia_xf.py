@@ -73,7 +73,7 @@ class LJXFCrawler(CrawlerBase):
             # ------------------------------------------ 楼盘列表 ------------------------------------------
 
             # ------------------------------------------ 楼盘详情 ------------------------------------------
-            detail_url = LJUrl.NEW_HOUSE_DETAIL_BASE_URL.value.format(house_detail_url)
+            detail_url = LJUrl.NEW_HOUSE_DETAIL_BASE_URL.value.format(self.city, house_detail_url)
             detail_resp = self.get(url=detail_url)
             detail_tree = etree.HTML(detail_resp.text)
             house_address = self._extract_first(detail_tree.xpath(LJHtmlSelector.NEW_HOUSE_ADDRESS.value))  # 项目地址
