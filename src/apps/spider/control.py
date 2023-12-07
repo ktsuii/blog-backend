@@ -23,7 +23,8 @@ def crawl_new_house(session, crawlor: Crawler, city: str, num: int, is_async: bo
     :return:
     """
     city = chinese2pinyin_abbr(city)
-    save_path = crawlor.ljxf(city).run(max_num=int(num), is_async=is_async)
+    ljxf_crawlor = crawlor.ljxf(city)
+    save_path = ljxf_crawlor.run(num, is_async)
 
     bytes_data = stream_download(save_path)
 
@@ -45,7 +46,8 @@ def crawl_wallpaper(session, crawlor: Crawler, keyword: str):
     """
     dirname = datetime.now().strftime("%Y%m%d%H%M%S")
     directory_path = pathlib.Path(Config.ZZZMH_SAVE_DIR, str(dirname))
-    flag, pictures = crawlor.zzzmh().run(keyword=keyword, max_page=1, save_dir=directory_path)
+    zzzmh_crawlor = crawlor.zzzmh()
+    flag, pictures = zzzmh_crawlor.run(keyword=keyword, max_page=1, save_dir=directory_path)
     if flag is False: return {}
     session.add_all([Wallpaper(**pic) for pic in pictures])
     session.commit()

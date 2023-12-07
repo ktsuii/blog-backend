@@ -22,8 +22,11 @@ class NewHouseSpiderView(MethodView, ProcessLogic):
     def post(self, *args, **kwargs):
         body = request.json
         city = body.get('city', '')
-        num = body.get('num', 1)
+        num = int(body.get('num', 1))
         is_async = body.get('craw_way', False)
+
+        if not city:
+            return {'code': 400, 'msg': '【链家新房】城市不能为空'}
 
         with self.session_maker() as session:
             result = crawl_new_house(session, self.crawler, city, num, is_async)
