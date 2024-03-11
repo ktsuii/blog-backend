@@ -2,14 +2,35 @@ from enum import Enum
 
 
 class ZZZMHUrl(Enum):
-    """极简壁纸"""
+    """极简壁纸url链接"""
     LIST_DATA_URL = 'https://api.zzzmh.cn/bz/v3/getData'
     DOWNLOAD_URL = 'https://api.zzzmh.cn/bz/v3/getUrl/{}'
     SEARCH_DATA_URL = 'https://api.zzzmh.cn/bz/v3/searchData'
 
 
+class ZZZMHOther(Enum):
+    """极简壁纸其他枚举"""
+    DEFAULT_MAX_PAGE = 1
+    PER_PAGE = 24
+
+
+class LJCrawlWay(Enum):
+    """链家爬取方式"""
+    SINGLE_CRAWL = 0
+    ASYNC_CRAWL = 1
+
+
+class LJOther(Enum):
+    """链家其他枚举"""
+    DEFAULT_CRAWL_NUM = 1
+    MAX_WORKERS = 10
+    PER_PAGE = 10
+    RANDOM_RANGE_LEFT = 1
+    RANDOM_RANGE_RIGHT = 3
+
+
 class LJUrl(Enum):
-    """链家"""
+    """链家url链接"""
     NEW_HOUSE_DATA_URL = 'https://{}.fang.lianjia.com/loupan/pg{}/'
     NEW_HOUSE_DETAIL_BASE_URL = 'https://{}.fang.lianjia.com{}'
 

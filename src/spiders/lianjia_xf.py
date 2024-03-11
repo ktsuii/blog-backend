@@ -7,7 +7,7 @@ import random
 from spiders.base import CrawlerBase
 from logger import info_log, error_log
 from settings import Config
-from spiders.const import LJUrl, LJHtmlSelector
+from spiders.const import LJUrl, LJHtmlSelector, LJCrawlWay, LJOther
 from lxml import etree
 
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -16,9 +16,6 @@ from utils.tools import chinese2pinyin_abbr
 
 
 class LJXFCrawler(CrawlerBase):
-    MAX_WORKERS = 10
-    PER_PAGE = 10
-
     def __init__(self, _city: str = "cd"):
         super().__init__()
         self.city = _city
@@ -93,7 +90,7 @@ class LJXFCrawler(CrawlerBase):
     def crawl_page_async(self, max_page: int, max_num: int):
         info_log.info(f'开始多线程爬取...')
         house_data = []
-        with ThreadPoolExecutor(max_workers=self.MAX_WORKERS) as executor:
+        with ThreadPoolExecutor(max_workers=LJOther.MAX_WORKERS.value) as executor:
             tasks = [executor.submit(self.crawling, page) for page in range(1, max_page + 1)]
             for future in as_completed(tasks):
                 try:
@@ -106,7 +103,7 @@ class LJXFCrawler(CrawlerBase):
                             info_log.info(f'已经爬取到最大数量，爬取结束')
                             break
                         house_data.extend(page_house)
-                    time.sleep(random.randint(1, 3))
+                    time.sleep(random.randint(LJOther.RANDOM_RANGE_LEFT.value, LJOther.RANDOM_RANGE_RIGHT.value))
                 except (ResponseError, HtmlVerificationError) as e:
                     error_log.error(f'crawl error, {e=}')
                     break
@@ -127,7 +124,7 @@ class LJXFCrawler(CrawlerBase):
                     info_log.info(f'已经爬取到最大数量，爬取结束')
                     break
                 house_data.extend(page_house)
-                time.sleep(random.randint(1, 3))
+                time.sleep(random.randint(LJOther.RANDOM_RANGE_LEFT.value, LJOther.RANDOM_RANGE_RIGHT.value))
                 info_log.info(f'第{curr_page}页爬取完成')
             except (ResponseError, HtmlVerificationError) as e:
                 error_log.error(f'crawl error, {e=}')
@@ -136,8 +133,8 @@ class LJXFCrawler(CrawlerBase):
         return house_data
 
     def run(self, max_num: int = 1, is_async=False):
-        # 计算最大页数，每页10条数据
-        max_page = max_num // self.PER_PAGE + 1 if max_num % self.PER_PAGE else max_num // self.PER_PAGE
+        max_page = max_num // LJOther.PER_PAGE.value + 1 \
+            if max_num % LJOther.PER_PAGE.value else max_num // LJOther.PER_PAGE.value
 
         header_columns = ['楼盘名称', '楼盘类型', '楼盘状态', '楼盘均价', '楼盘总价', '楼盘详情']
         detail_header_columns = ['项目地址', '最近开盘', '楼盘户型']
@@ -153,6 +150,7 @@ class LJXFCrawler(CrawlerBase):
             house_data = self.crawl_page_async(max_page=max_page, max_num=max_num)
 
         info_log.info(f'爬取完成，共{len(house_data)}条数据，即将写入文件...')
+        house_data = house_data[:max_num]
         self.to_excel(save_path=save_path, data=house_data, columns=header_columns)
         info_log.info(f'写入文件完成，文件路径：{save_path}')
         return save_path
@@ -166,11 +164,11 @@ def main():
         raise ValueError('【链家新房】城市缩写不能为空')
 
     num = input('【链家新房】请输入要爬取的楼盘数量（默认为1）：')
-    if not num: num = 1
+    if not num: num = LJOther.DEFAULT_CRAWL_NUM.value
 
     craw_way = input('【链家新房】请选择爬取方式（0：[默认]同步单线程爬取，1：异步多线程爬取）：')
-    if not craw_way: craw_way = 0
-    is_async = True if int(craw_way) == 1 else False
+    if not craw_way: craw_way = LJCrawlWay.SINGLE_CRAWL.value
+    is_async = True if int(craw_way) == LJCrawlWay.ASYNC_CRAWL.value else False
 
     print("【链家新房】开始爬取...")
     craw = LJXFCrawler(city)

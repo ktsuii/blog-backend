@@ -1,11 +1,12 @@
 import pathlib
+import time
 from dataclasses import asdict
 from spiders.exception import ResponseError
 
 from spiders.base import CrawlerBase
 from logger import info_log, error_log
 from settings.config_base import Config
-from spiders.const import ZZZMHUrl
+from spiders.const import ZZZMHUrl, ZZZMHOther
 from spiders.executor import JSExecutor
 from spiders.schema import ZZZMHPageListReqParam, ZZZMHSearchDataReqParam
 
@@ -39,27 +40,37 @@ class ZZZMHCrawler(CrawlerBase):
             args=[secret_code]
         )
 
-        # 3. download picture
+        # 3. picture download link
         list_data = decrypt_code['list']
         for pic in list_data:
             cust_pic_id = f"{pic['i']}{pic['t']}1"
             download_resp = self.get(url=ZZZMHUrl.DOWNLOAD_URL.value.format(cust_pic_id))
 
             save_path = save_dir.joinpath(f"{cust_pic_id}.jpg")
-            if not save_path.parent.exists():
-                save_path.parent.mkdir(parents=True)
-
-            with open(save_path, 'wb') as f:
-                f.write(download_resp.content)
-                info_log.info(f'save picture {save_path} success')
-
-            wallpapers.append(dict(pid=cust_pic_id, path=str(save_path)))
+            wallpapers.append(dict(
+                pid=cust_pic_id, path=str(save_path),
+                download_content=download_resp.content, save_path=save_path
+            ))
 
         return wallpapers
 
-    def run(self, keyword=None, max_page=None, save_dir=None):
+    @staticmethod
+    def download(save_path, download_content):
+        if not save_path.parent.exists():
+            save_path.parent.mkdir(parents=True)
+
+        with open(save_path, 'wb') as f:
+            f.write(download_content)
+            info_log.info(f'save picture {save_path} success')
+
+    def run(self, keyword=None, max_num=None, save_dir=None):
         if save_dir is None:
-            save_dir = pathlib.Path(Config.ZZZMH_SAVE_DIR)
+            base_dir = pathlib.Path(Config.ZZZMH_SAVE_DIR)
+            save_dir = base_dir.joinpath(time.strftime("%Y%m%d%H%M%S", time.localtime()))
+
+        # 计算最大页数
+        max_page = max_num // ZZZMHOther.PER_PAGE.value + 1 \
+            if max_num % ZZZMHOther.PER_PAGE.value else max_num // ZZZMHOther.PER_PAGE.value
 
         flag, crawl_wallpapers = True, []
         curr_page = 1
@@ -71,11 +82,31 @@ class ZZZMHCrawler(CrawlerBase):
                 flag = False
                 break
             crawl_wallpapers.extend(page_wallpapers)
+            if len(crawl_wallpapers) >= max_num:
+                info_log.info(f'已经爬取到最大数量，爬取结束')
+                break
             curr_page += 1
+
+        # start download
+        for cw in crawl_wallpapers[:max_num]:
+            download_content = cw.get('download_content', None)
+            save_path = cw.get('save_path', None)
+            if not download_content and not save_path: continue
+            self.download(save_path=save_path, download_content=download_content)
 
         return flag, crawl_wallpapers
 
 
-if __name__ == '__main__':
+def main():
+    print("\n==================================================================================")
+    num = int(input('【极简壁纸】请输入要爬取的壁纸数量（默认是24张）：'))
+    keyword = input('【极简壁纸】请输入要爬取的壁纸关键字：')
+    print("【极简壁纸】开始爬取...")
     craw = ZZZMHCrawler()
-    craw.run(max_page=2)
+    craw.run(max_num=num, keyword=keyword)
+    print("【极简壁纸】爬取完成...")
+    print("==================================================================================\n")
+
+
+if __name__ == '__main__':
+    main()
