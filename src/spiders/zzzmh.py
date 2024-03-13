@@ -3,7 +3,7 @@ import time
 from dataclasses import asdict
 from typing import List
 
-from spiders.exception import ResponseError, DownloadResourceError
+from spiders.exception import ResponseError
 
 from spiders.base import CrawlerBase
 from logger import info_log, error_log

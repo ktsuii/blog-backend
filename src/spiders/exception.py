@@ -11,8 +11,3 @@ class HtmlSourceError(Exception):
 class HtmlVerificationError(Exception):
     """HtmlVerification failed."""
     ...
-
-
-class DownloadResourceError(Exception):
-    """download resource error"""
-    ...
