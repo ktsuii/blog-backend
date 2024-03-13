@@ -1,14 +1,16 @@
 import pathlib
 import time
 from dataclasses import asdict
-from spiders.exception import ResponseError
+from typing import List
+
+from spiders.exception import ResponseError, DownloadResourceError
 
 from spiders.base import CrawlerBase
 from logger import info_log, error_log
 from settings.config_base import Config
 from spiders.const import ZZZMHUrl, ZZZMHOther
 from spiders.executor import JSExecutor
-from spiders.schema import ZZZMHPageListReqParam, ZZZMHSearchDataReqParam
+from spiders.schema import ZZZMHPageListReqParam, ZZZMHSearchDataReqParam, ZZZMHWallpaperStruct
 
 
 class ZZZMHCrawler(CrawlerBase):
@@ -21,7 +23,7 @@ class ZZZMHCrawler(CrawlerBase):
         }
         self.js_executor = JSExecutor()
 
-    def crawling(self, page: int, save_dir: pathlib.Path, kw: str):
+    def crawling(self, page: int, save_dir: pathlib.Path, kw: str) -> List[ZZZMHWallpaperStruct]:
         wallpapers = []
 
         # 1. request
@@ -45,17 +47,20 @@ class ZZZMHCrawler(CrawlerBase):
         for pic in list_data:
             cust_pic_id = f"{pic['i']}{pic['t']}1"
             download_resp = self.get(url=ZZZMHUrl.DOWNLOAD_URL.value.format(cust_pic_id))
-
             save_path = save_dir.joinpath(f"{cust_pic_id}.jpg")
-            wallpapers.append(dict(
-                pid=cust_pic_id, path=str(save_path),
-                download_content=download_resp.content, save_path=save_path
-            ))
+
+            wp_item = ZZZMHWallpaperStruct(
+                pid=cust_pic_id,
+                path=str(save_path),
+                download_content=download_resp.content,
+                save_path=save_path  # 冗余，只是为了兼容feature
+            )
+            wallpapers.append(wp_item)
 
         return wallpapers
 
     @staticmethod
-    def download(save_path, download_content):
+    def download_picture(save_path: pathlib.Path, download_content: bytes):
         if not save_path.parent.exists():
             save_path.parent.mkdir(parents=True)
 
@@ -89,10 +94,14 @@ class ZZZMHCrawler(CrawlerBase):
 
         # start download
         for cw in crawl_wallpapers[:max_num]:
-            download_content = cw.get('download_content', None)
-            save_path = cw.get('save_path', None)
+            download_content = cw.download_content
+            save_path = cw.save_path
             if not download_content and not save_path: continue
-            self.download(save_path=save_path, download_content=download_content)
+            try:
+                self.download_picture(save_path=save_path, download_content=download_content)
+            except Exception as e:
+                error_log.error(f'download picture error={e}, skip')
+                continue
 
         return flag, crawl_wallpapers
 

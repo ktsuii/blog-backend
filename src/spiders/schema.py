@@ -1,3 +1,4 @@
+import pathlib
 from dataclasses import dataclass
 
 
@@ -26,3 +27,12 @@ class ZZZMHSearchDataReqParam:
     resolution: int = 0
     sort: int = 0
     keyword: str = ''
+
+
+@dataclass
+class ZZZMHWallpaperStruct:
+    """爬取壁纸返回结构"""
+    pid: str = ""
+    path: str = ""
+    download_content: bytes = None
+    save_path: pathlib.Path = None
